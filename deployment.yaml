@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ricky-midterm-petclinic
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ricky-midterm-petclinic
+  template:
+    metadata:
+      labels:
+        app: ricky-midterm-petclinic
+    spec:
+      containers:
+      - name: ricky-midterm-petclinic
+        image: grunt0341/java-app:latest
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ricky-midterm-petclinic-service
+spec:
+  selector:
+    app: ricky-midterm-petclinic
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+    nodePort: 30007
+  type: NodePort
