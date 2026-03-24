@@ -16,20 +16,20 @@ pipeline {
 
         stage('Build with Java 17') {
             steps {
-                sh "docker run --rm --volumes-from jenkins -w ${WORKSPACE} maven:3.9.6-eclipse-temurin-17 mvn -B clean package -DskipTests -Dcheckstyle.skip=true -Dspring-javaformat.skip=true"
+                sh "docker run --rm --volumes-from jenkins -w ${WORKSPACE} maven:3.9-eclipse-temurin-17 mvn -B clean package -DskipTests -Dcheckstyle.skip=true -Dspring-javaformat.skip=true -Dnative-maven-plugin.skip=true"
             }
         }
 
         stage('Run Tests with Java 11') {
             steps {
-                sh "docker run --rm --volumes-from jenkins -w ${WORKSPACE} maven:3.9.6-eclipse-temurin-11 mvn -B test -Dcheckstyle.skip=true -Dspring-javaformat.skip=true -Dsurefire.failIfNoSpecifiedTests=false"
+                sh "docker run --rm --volumes-from jenkins -w ${WORKSPACE} maven:3.9-eclipse-temurin-11 mvn -B test -Dcheckstyle.skip=true -Dspring-javaformat.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dnative-maven-plugin.skip=true"
             }
         }
 
         stage('Analyze Code Quality') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh "docker run --rm --volumes-from jenkins --network ci_network -w ${WORKSPACE} maven:3.9.6-eclipse-temurin-17 mvn -B sonar:sonar -Dsonar.projectKey=spring-petclinic -Dsonar.host.url=http://sonar:9000 -Dsonar.token=${SONAR_AUTH_TOKEN} -Dcheckstyle.skip=true -Dspring-javaformat.skip=true"
+                    sh "docker run --rm --volumes-from jenkins --network ci_network -w ${WORKSPACE} maven:3.9-eclipse-temurin-17 mvn -B sonar:sonar -Dsonar.projectKey=spring-petclinic -Dsonar.host.url=http://sonar:9000 -Dsonar.token=${SONAR_AUTH_TOKEN} -Dcheckstyle.skip=true -Dspring-javaformat.skip=true -Dnative-maven-plugin.skip=true"
                 }
             }
         }
