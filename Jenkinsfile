@@ -71,7 +71,7 @@ pipeline {
         }
         stage('Trivy Security Scan') {
             steps {
-                sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --severity HIGH,CRITICAL ${IMAGE_NAME}"
+                sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.61.0 image --severity HIGH,CRITICAL ${IMAGE_NAME}"
             }
         }
         stage('Push to Docker Hub') {
