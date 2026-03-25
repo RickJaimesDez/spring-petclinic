@@ -19,7 +19,10 @@ pipeline {
                 script {
                     sh 'docker run --rm --volumes-from jenkins -w ${WORKSPACE} --user root alpine sh -c "rm -rf target"'
                     docker.image('maven:3.9-eclipse-temurin-17').inside("--network ci_network --volumes-from jenkins") {
-                        sh "mvn -B clean package -DskipTests -Dcheckstyle.skip=true -Dspring-javaformat.skip=true -Dnative-maven-plugin.skip=true"
+                        sh '''
+                        export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+                        mvn -B clean package -DskipTests -Dcheckstyle.skip=true -Dspring-javaformat.skip=true -Dnative-maven-plugin.skip=true
+                        '''
                     }
                 }
             }
