@@ -53,6 +53,17 @@ pipeline {
                 }
             }
         }
+        stage('Static Code Analysis') {
+            steps {
+                script {
+                    withSonarQubeEnv('SonarQube') {
+                        docker.image('maven:3.9-eclipse-temurin-11').inside("--network ci_network --volumes-from jenkins") {
+                            sh "mvn -B sonar:sonar -Dsonar.host.url=${SONARQUBE_SERVER} -Dsonar.java.source=1.8 -Dspring-javaformat.skip=true -Dnative-maven-plugin.skip=true -Denforcer.skip=true"
+                        }
+                    }
+                }
+            }
+        }
         stage('Build Docker Image') {
             steps {
                 sh "docker build -t ${IMAGE_NAME} ."
