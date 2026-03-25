@@ -237,10 +237,13 @@
         <executions>
           <execution>
             <!-- Spring Boot Actuator displays build-related information
-              if a META-INF/build-info.properties file is present -->
+              if a META-INF/build-info.properties file is present.
+              Disabled: spring-boot-maven-plugin 4.x requires Java 17 (class file 61.0)
+              but the test stage runs under Java 11. -->
             <goals>
               <goal>build-info</goal>
             </goals>
+            <phase>none</phase>
             <configuration>
               <additionalProperties>
                 <encoding.source>${project.build.sourceEncoding}</encoding.source>
