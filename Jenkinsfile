@@ -24,6 +24,7 @@ pipeline {
                 }
             }
         }
+        
         stage('Run Tests with Java 11') {
             steps {
                 script {
