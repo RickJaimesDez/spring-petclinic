@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'grunt0341/java-app:latest'
         SONARQUBE_SERVER = 'http://sonar:9000'
+        IMAGE_NAME = 'grunt0341/java-app:latest'
     }
 
     stages {
@@ -16,20 +16,32 @@ pipeline {
 
         stage('Build with Java 17') {
             steps {
-                sh "docker run --rm --volumes-from jenkins -w ${WORKSPACE} maven:3.9-eclipse-temurin-17 mvn -B clean package -DskipTests -Dcheckstyle.skip=true -Dspring-javaformat.skip=true -Dnative-maven-plugin.skip=true"
+                script {
+                    docker.image('eclipse-temurin:17-jdk').inside("--network ci_network --volumes-from jenkins") {
+                        sh "mvn -B clean package -DskipTests -Dcheckstyle.skip=true -Dspring-javaformat.skip=true -Dnative-maven-plugin.skip=true"
+                    }
+                }
             }
         }
 
         stage('Run Tests with Java 11') {
             steps {
-                sh "docker run --rm --volumes-from jenkins -w ${WORKSPACE} maven:3.9-eclipse-temurin-11 mvn -B test -Dcheckstyle.skip=true -Dspring-javaformat.skip=true -Dsurefire.failIfNoSpecifiedTests=false -Dnative-maven-plugin.skip=true"
+                script {
+                    docker.image('eclipse-temurin:11-jdk').inside("--network ci_network --volumes-from jenkins") {
+                        sh "mvn -B test -Dcheckstyle.skip=true -Dspring-javaformat.skip=true -Dnative-maven-plugin.skip=true -Denforcer.skip=true"
+                    }
+                }
             }
         }
 
-        stage('Analyze Code Quality') {
+        stage('Static Code Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh "docker run --rm --volumes-from jenkins --network ci_network -w ${WORKSPACE} maven:3.9-eclipse-temurin-17 mvn -B sonar:sonar -Dsonar.projectKey=spring-petclinic -Dsonar.host.url=http://sonar:9000 -Dsonar.token=${SONAR_AUTH_TOKEN} -Dcheckstyle.skip=true -Dspring-javaformat.skip=true -Dnative-maven-plugin.skip=true"
+                script {
+                    withSonarQubeEnv('SonarQube') {
+                        docker.image('eclipse-temurin:11-jdk').inside("--network ci_network --volumes-from jenkins") {
+                            sh "mvn -B sonar:sonar -Dsonar.host.url=${SONARQUBE_SERVER} -Dsonar.java.source=1.8 -Dcheckstyle.skip=true -Dspring-javaformat.skip=true -Dnative-maven-plugin.skip=true -Denforcer.skip=true"
+                        }
+                    }
                 }
             }
         }
@@ -46,7 +58,7 @@ pipeline {
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     sh '''
