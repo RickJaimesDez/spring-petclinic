@@ -17,13 +17,13 @@ pipeline {
         stage('Build with Java 17') {
             steps {
                 script {
+                    sh 'rm -rf target'
                     docker.image('maven:3.9-eclipse-temurin-17').inside("--network ci_network --volumes-from jenkins") {
                         sh "mvn -B clean package -DskipTests -Dcheckstyle.skip=true -Dspring-javaformat.skip=true -Dnative-maven-plugin.skip=true"
                     }
                 }
             }
         }
-
         stage('Run Tests with Java 11') {
             steps {
                 script {
